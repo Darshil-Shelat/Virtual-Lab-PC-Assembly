@@ -1,0 +1,89 @@
+TECHNICAL DOCUMENTATION & ARCHITECTURE GUIDE
+PC ASSEMBLY VIRTUAL LABORATORY
+
+================================================================================
+OVERVIEW
+
+This document is a technical guide for developers, students, and beginners. It explains how this PC Assembly Virtual Lab was built. It uses straightforward language so anyone can understand how the complex code works under the hood.
+
+================================================================================
+1. HOW IT WAS BUILT (THE TECH STACK)
+
+This app runs entirely in the web browser (Frontend). There is no complex backend server or database needed!
+
+- React.js: The main brain. We use it to build the user interface (UI) using smaller building blocks called "components". We use React features (called Hooks like `useState`) to remember things in the app, like your score and progress.
+- Vite: The engine that builds the app quickly. It's much faster than older tools and instantly updates the browser when you change the code (Hot Reloading).
+- Tailwind CSS: The styling tool. Instead of writing separate CSS files, we write short, simple class names directly in the code (like `bg-blue-500` for a blue background). It makes creating responsive, good-looking designs very easy.
+- Framer Motion: The animation library. It handles things zooming in, fading out, and the physics of our drag-and-drop system.
+- Lucide React: A library for icons. It gives us clean, fast-loading icons like the CPU or Speaker graphics.
+- TypeScript: A stricter version of JavaScript. It helps catch coding errors early by making sure we are holding the right type of data (like making sure a number is always a number, not a word).
+
+================================================================================
+2. HOW PAGES WORK (APP ROUTING)
+
+Usually, websites have multiple HTML pages. This app is a "Single Page Application" (SPA). We only have one actual page, but we trick the user into thinking there are multiple pages!
+
+- The Screen Memory: 
+  We use a React variable called `currentScene` to remember where the user is. 
+  Code: `const [currentScene, setCurrentScene] = useState('home');`
+  
+- Swapping Views: 
+  If `currentScene` is 'home', we show the Home component. If the user clicks "Theory", we change `currentScene` to 'theory', and React instantly swaps the view on the screen to show the Theory component. No page reloading required!
+
+================================================================================
+3. THE TECHNICAL MAGIC (HOW FEATURES WORK)
+
+3.1 The Drag-and-Drop System (Framer Motion API)
+We didn't use the clunky standard HTML5 drag-and-drop. We built a custom one using Framer Motion for a smooth, app-like feel.
+- How it drags: We turn our components into `<motion.div drag>` elements. This instantly makes them draggable with the mouse.
+- Checking the drop: When the user lets go of the mouse (an event called `onDragEnd`), the code checks a rule: "Is this the correct part for this specific step?"
+- The cool bounce effect: If the user drops the wrong part, Framer Motion's physics automatically bounce the piece back to the inventory tray. If it's correct, we lock it in place on the motherboard and add points!
+
+3.2 The Robot Voice Reader (HTML5 Web Speech API)
+We added dynamic voice instructions that read the steps aloud. However, we didn't want to download bulky MP3 audio files which make the website slow.
+- The API: We used a built-in browser feature called `window.speechSynthesis`. This turns text into speech for free!
+- How it talks: We have a dictionary of text, like `step_1: "Next, install the Motherboard."` When a step starts, the code grabs this text, finds a beautiful English voice installed on your computer, and says it out loud.
+- Why it's smart: It takes up zero storage space in our app and runs entirely on the user's device!
+
+3.3 The Animated Video Demo (CSS + Math)
+Instead of embedding a heavy YouTube video on the home page, we coded our own animated video using pure code!
+- How it moves: We used Framer Motion to move SVG shapes (like a drawing of a CPU and RAM). By telling a block to move down 50 pixels and fade in over time, we created an animation.
+- The Loop: We set a delay and a timer loop in the code (`transition={{ delay: 2, repeat: Infinity }}`). This perfectly coordinates the shapes to drop one by one on the screen, looking exactly like an animated tutorial video!
+
+3.4 The Interactive Quiz Engine
+A self-grading quiz to test learning without any teachers.
+- The Data: We store questions and options in a simple list. We also save which answer is the correct one (e.g., the answer is option number 1).
+- Checking Answers: When a user clicks an option, the code compares their click to the correct number. 
+- Color Feedback: We use Tailwind CSS to change the button colors instantly. It turns Green for correct and Red for wrong. We then set a timer in JavaScript (`setTimeout`) to wait 1.5 seconds so the user can see their result before auto-moving to the next question.
+
+3.5 Non-Synchronous Event Handlers & The JavaScript Event Loop
+You might wonder if we used any asynchronous behavior, Event Loops, or non-synchronous API handlers. Yes! Since JavaScript runs on a single "main thread" (meaning it can only do one thing at a exact time), we rely heavily on the browser's Event Loop.
+- Why we need it: When you assemble a part or answer a quiz question, we want to show you a "Success!" message for a few seconds BEFORE jumping to the next step. If we told the code to simply "sleep for 3 seconds", the entire website would freeze, and you wouldn't even see the success message!
+- Using `setTimeout`: Instead, we use a non-synchronous handler called `setTimeout`. We say, "Hey browser, keep doing your thing, but put a timer in the background Task Queue. In 1.5 seconds, run this little piece of code to move to the next level." The Event Loop waits, and once it's time, it executes it perfectly without freezing your screen.
+- React `useEffect`: This is a built-in asynchronous tool we used. When you move to step 2 of the assembly, `useEffect` notices the background state change. It waits until the screen displays step 2, and then triggers the non-synchronous Audio API to read the text out loud without blocking your mouse clicks.
+
+3.6 Build Pipelining & Logic Pipelines
+- The Vite Build Pipeline: This is a frontend app, but it still has a "Build Pipeline" managed by Vite and esbuild. Our code is written in complex TypeScript and Tailwind styling that browsers don't understand natively. When running the app, the Vite Pipeline takes all our files, automatically strips out the Typescript tags, bundles the React logic together, minifies the code to make it load instantly, and outputs it as normal, fast CSS and JavaScript.
+- Logic Pipelining: Within our code logic, we built a strict assembly pipeline. We use a variable called `currentStep` (e.g., Step 0 is PSU, Step 1 is Motherboard). We check the flow linearly—if you try to drop the GPU (Step 4) before the Motherboard (Step 1), our logic pipeline catches the misorder, throws a "Sequence Error," and logs a mistake. It forces pipelining step-by-step logic.
+
+================================================================================
+4. HOW TO EDIT AND RUN THIS APP YOURSELF (FOR BEGINNERS)
+
+You can change the text, colors, or code easily on your own computer.
+
+Tools you need:
+- Node.js: Download and install this from nodejs.org. It runs JavaScript outside the browser.
+- Visual Studio Code (VS Code): A great, free code editor used by professionals.
+
+Step-by-step to start:
+1. Unzip the project folder on your computer.
+2. Open VS Code, go to "File" > "Open Folder", and select the project folder.
+3. Open a Terminal inside VS Code (click "Terminal" > "New Terminal" at the top menu).
+4. Type `npm install` and hit Enter. This downloads all the required code building blocks (dependencies).
+5. Type `npm run dev` and hit Enter. This starts a super-fast local web server.
+6. Look in the terminal window for a link like `http://localhost:5173` and open that link in your browser (like Chrome or Edge).
+
+How to edit (The Magic!):
+- Keep the terminal server running in the background. Open the file `src/App.tsx` in VS Code.
+- Find some text or a color (like `bg-cyan-500`) in the code, change it, and press Save (Ctrl+S or Cmd+S).
+- Look at your browser window—the app will instantly update magically without you even clicking the refresh button! That's the power of Vite Hot Reloading.
